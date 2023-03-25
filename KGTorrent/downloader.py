@@ -221,7 +221,8 @@ if __name__ == '__main__':
     print("** QUERING KERNELS TO DOWNLOAD **")
     kernels_ids = db_engine.get_nb_identifiers(config.nb_conf['languages'])
 
-    downloader = Downloader(kernels_ids.head(), config.nb_archive_path)
+    #downloader = Downloader(kernels_ids.head(), config.nb_archive_path)
+    downloader = Downloader(kernels_ids, config.nb_archive_path)
     strategies = 'HTTP', 'API'
 
     print("*******************************")
