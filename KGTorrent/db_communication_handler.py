@@ -505,7 +505,7 @@ class DbCommunicationHandler:
                 query = query + f'OR kernellanguages.name LIKE \'{lang}\' '
 
         # Close the query
-        query = query + ' LIMIT 2;'
+        query = query + ' LIMIT 200;'
 
         # Execute the query
         with self._engine.connect() as conn:

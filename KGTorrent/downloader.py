@@ -72,11 +72,12 @@ class Downloader:
             split = name.split('_')
 
             # check if the file have valid name
-            if len(split) == 2:
+            if len(split) == 3:
 
                 # If the file exists in folder drop it from res
                 if (split[0] in self._nb_identifiers['UserName'].values) & \
-                        (split[1] in self._nb_identifiers['CurrentUrlSlug'].values):
+                        (split[1] in self._nb_identifiers['CurrentUrlSlug'].values) & \
+                            (split[2] in self._nb_identifiers['CurrentKernelVersionId'].values):
                     print('Notebook ', name, ' already downloaded')
                     self._nb_identifiers = self._nb_identifiers.loc[~(
                             (self._nb_identifiers['UserName'] == split[0]) &
@@ -117,7 +118,7 @@ class Downloader:
                 continue
 
             # Write notebook in folder
-            download_path = self._nb_archive_path + f'/{row[1]}_{row[2]}.ipynb'
+            download_path = self._nb_archive_path + f'/{row[1]}_{row[2]}_{row[3]}.ipynb'
             with open(Path(download_path), 'wb') as notebook_file:
                 notebook_file.write(notebook.content)
 
