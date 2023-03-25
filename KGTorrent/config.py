@@ -35,3 +35,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='[%(levelname)s]\t%(asctime)s - %(message)s'
 )
+
+# Google Cloud Storage configuration
+google_project_id = os.environ['GOOGLE_PROJECT_ID']
+google_bucket_name = os.environ['GOOGLE_BUCKET_NAME']
