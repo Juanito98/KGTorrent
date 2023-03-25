@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 
 # Imports for testing
-from KGTorrent import config
-from KGTorrent.data_loader import DataLoader
+import config
+from data_loader import DataLoader
 
 class MkPreprocessor:
     """

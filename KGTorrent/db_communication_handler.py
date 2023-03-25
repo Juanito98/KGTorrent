@@ -5,7 +5,7 @@ This module defines the class that handles the communication with the database v
 import sys
 from sqlalchemy.exc import IntegrityError
 
-from KGTorrent.exceptions import DatabaseExistsError
+from exceptions import DatabaseExistsError
 
 import pandas as pd
 
@@ -21,9 +21,9 @@ from sqlalchemy import (MetaData, Table, Column, Integer, String, Float,
 from sqlalchemy.dialects.mysql import (MEDIUMTEXT, LONGTEXT)
 
 # Imports for testing
-import KGTorrent.config as config
-from KGTorrent.mk_preprocessor import MkPreprocessor
-from KGTorrent.data_loader import DataLoader
+import config as config
+from mk_preprocessor import MkPreprocessor
+from data_loader import DataLoader
 
 
 class DbCommunicationHandler:
@@ -466,10 +466,11 @@ class DbCommunicationHandler:
                     f'ADD FOREIGN KEY ({foreign_key}) REFERENCES {referenced_table}({referenced_col});'
 
             print('Executing "{}"'.format(query))
-            try:
-                self._engine.execute(query)
-            except IntegrityError as e:
-                print("\t - INTEGRITY ERROR. Can't update table ", table_name, file=sys.stderr)
+            with self._engine.connect() as conn:
+                try:
+                    conn.execute(query)
+                except IntegrityError as e:
+                    print("\t - INTEGRITY ERROR. Can't update table ", table_name, file=sys.stderr)
 
     def get_nb_identifiers(self, languages):
         """
@@ -504,7 +505,7 @@ class DbCommunicationHandler:
                 query = query + f'OR kernellanguages.name LIKE \'{lang}\' '
 
         # Close the query
-        query = query + ';'
+        query = query + ' LIMIT 2;'
 
         # Execute the query
         nb_identifiers = pd.read_sql(sql=query, con=self._engine)

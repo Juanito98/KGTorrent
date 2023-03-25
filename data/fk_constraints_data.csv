@@ -6,5 +6,4 @@ Kernels.csv,AuthorUserId,Users.csv,Id
 Kernels.csv,CurrentKernelVersionId,KernelVersions.csv,Id
 KernelVersions.csv,ParentScriptVersionId,KernelVersions.csv,Id
 Kernels.csv,ForkParentKernelVersionId,KernelVersions.csv,Id
-Kernels.csv,ForumTopicId,ForumTopics.csv,Id
 Kernels.csv,FirstKernelVersionId,KernelVersions.csv,Id

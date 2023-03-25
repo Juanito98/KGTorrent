@@ -4,11 +4,11 @@ import argparse
 import sys
 from pathlib import Path
 
-import KGTorrent.config as config
-from KGTorrent.data_loader import DataLoader
-from KGTorrent.db_communication_handler import DbCommunicationHandler
-from KGTorrent.downloader import Downloader
-from KGTorrent.mk_preprocessor import MkPreprocessor
+import config as config
+from data_loader import DataLoader
+from db_communication_handler import DbCommunicationHandler
+from downloader import Downloader
+from mk_preprocessor import MkPreprocessor
 
 
 def main():

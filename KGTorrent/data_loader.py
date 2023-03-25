@@ -5,7 +5,7 @@ This module defines the class that handles the data loading.
 import pandas as pd
 
 # Imports for testing
-from KGTorrent import config
+import config
 
 class DataLoader:
     """

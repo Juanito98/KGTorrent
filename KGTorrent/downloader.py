@@ -11,8 +11,8 @@ import requests
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 # Imports for testing
-import KGTorrent.config as config
-from KGTorrent.db_communication_handler import DbCommunicationHandler
+import config as config
+from db_communication_handler import DbCommunicationHandler
 
 
 class Downloader:
