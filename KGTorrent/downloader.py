@@ -7,6 +7,7 @@ import os
 import re
 import time
 from pathlib import Path
+import numpy as np
 from tqdm import tqdm
 
 import requests
@@ -78,11 +79,10 @@ class Downloader:
 
             # check if the file have valid name
             if len(split) == 3:
-
                 # If the file exists in folder drop it from res
-                if (split[0] in self._nb_identifiers['UserName'].values) & \
-                        (split[1] in self._nb_identifiers['CurrentUrlSlug'].values) & \
-                            (split[2] in self._nb_identifiers['CurrentKernelVersionId'].values):
+                if all(np.in1d(split[0], self._nb_identifiers['UserName'].values)) & \
+                        all(np.in1d(split[1], self._nb_identifiers['CurrentUrlSlug'].values)) & \
+                            all(np.in1d(int(split[2]), self._nb_identifiers['CurrentKernelVersionId'].values)):
                     print('Notebook ', name, ' already downloaded')
                     self._nb_identifiers = self._nb_identifiers.loc[~(
                             (self._nb_identifiers['UserName'] == split[0]) &
