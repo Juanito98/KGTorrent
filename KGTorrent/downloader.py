@@ -3,6 +3,8 @@ This module defines the class that handles the actual download of Jupyter notebo
 """
 
 import logging
+import os
+import re
 import time
 from pathlib import Path
 from tqdm import tqdm
@@ -13,6 +15,7 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 # Imports for testing
 import config as config
 from db_communication_handler import DbCommunicationHandler
+from cloud_storage import ls, rm, write
 
 
 class Downloader:
@@ -65,10 +68,12 @@ class Downloader:
         """
 
         # Get notebook names
-        notebook_paths = list(Path(self._nb_archive_path).glob('*.ipynb'))
+        # notebook_paths = list(Path(self._nb_archive_path).glob('*.ipynb'))
+        notebook_paths = ls(self._nb_archive_path)
 
         for path in notebook_paths:
-            name = path.stem
+            # name = path.stem
+            name = re.search(r"/([^/]+)\.[^/]+$", path).group(1)
             split = name.split('_')
 
             # check if the file have valid name
@@ -84,11 +89,13 @@ class Downloader:
                             (self._nb_identifiers['CurrentUrlSlug'] == split[1]))]
                 else:  # remove the notebook
                     print('Removing notebook', name, ' not found in db')
-                    path.unlink()
+                    #path.unlink()
+                    rm(path)
 
             else:  # remove the notebook
                 print('Removing notebook', name, ' not valid')
-                path.unlink()
+                #path.unlink()
+                rm(path)
 
     def _http_download(self):
         """
@@ -118,9 +125,10 @@ class Downloader:
                 continue
 
             # Write notebook in folder
-            download_path = self._nb_archive_path + f'/{row[1]}_{row[2]}_{row[3]}.ipynb'
-            with open(Path(download_path), 'wb') as notebook_file:
-                notebook_file.write(notebook.content)
+            download_path = os.path.join(self._nb_archive_path, f'{row[1]}_{row[2]}_{row[3]}.ipynb')
+            #with open(Path(download_path), 'wb') as notebook_file:
+            #    notebook_file.write(notebook.content)
+            write(download_path, notebook.content)
 
             self._n_successful_downloads += 1
             logging.info(f'Downloaded {row[1]}/{row[2]} (ID: {row[3]})')
@@ -181,11 +189,11 @@ class Downloader:
         time.sleep(1)
 
         # HTTP STRATEGY
-        if strategy is 'HTTP':
+        if strategy == 'HTTP':
             self._http_download()
 
         # API STRATEGY
-        if strategy is 'API':
+        if strategy == 'API':
             self._api_download()
 
         # Print download session summary
