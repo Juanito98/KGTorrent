@@ -508,7 +508,8 @@ class DbCommunicationHandler:
         query = query + ' LIMIT 2;'
 
         # Execute the query
-        nb_identifiers = pd.read_sql(sql=query, con=self._engine)
+        with self._engine.connect() as conn:
+            nb_identifiers = pd.read_sql(sql=query, con=conn)
 
         return nb_identifiers
 
