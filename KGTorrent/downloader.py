@@ -75,7 +75,7 @@ class Downloader:
         
         user_names = [name.split('_')[0] for name in notebook_names]
         current_url_slug = [name.split('_')[1] for name in notebook_names]
-        current_kernel_version_id = [name.split('_')[2] for name in notebook_names]
+        current_kernel_version_id = [int(name.split('_')[2]) for name in notebook_names]
         only_three_columns = [len(name.split('_')) == 3 for name in notebook_names]
 
         # Remove notebooks that are not valid or if not exist in db
