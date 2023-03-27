@@ -83,6 +83,7 @@ class Downloader:
             np.logical_and(np.in1d(user_names, self._nb_identifiers['UserName']), np.in1d(current_url_slug, self._nb_identifiers['CurrentUrlSlug'])),
             np.logical_and(np.in1d(current_kernel_version_id, self._nb_identifiers['CurrentKernelVersionId']), only_three_columns),
         ))
+        print(f"Removing {should_remove_nb.sum()} notebooks.")
         for path in np.array(notebook_paths)[should_remove_nb]:
             print('Removing notebook', path, ' not found in db')
             # os.unlink(path)
