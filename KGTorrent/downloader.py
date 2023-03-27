@@ -70,32 +70,32 @@ class Downloader:
 
         # Get notebook names
         # notebook_paths = list(Path(self._nb_archive_path).glob('*.ipynb'))
-        notebook_paths = ls(self._nb_archive_path)
+        notebook_paths = ls(self._nb_archive_path, r'.*\.ipynb$')
+        notebook_names = [re.search(r"/([^/]+)\.[^/]+$", path).group(1) for path in notebook_paths]
+        
+        user_names = [name.split('_')[0] for name in notebook_names]
+        current_url_slug = [name.split('_')[1] for name in notebook_names]
+        current_kernel_version_id = [name.split('_')[2] for name in notebook_names]
+        only_three_columns = [len(name.split('_')) == 3 for name in notebook_names]
 
-        for path in notebook_paths:
-            # name = path.stem
-            name = re.search(r"/([^/]+)\.[^/]+$", path).group(1)
-            split = name.split('_')
+        # Remove notebooks that are not valid or if not exist in db
+        should_remove_nb = np.logical_not(np.logical_and(
+            np.logical_and(np.in1d(user_names, self._nb_identifiers['UserName']), np.in1d(current_url_slug, self._nb_identifiers['CurrentUrlSlug'])),
+            np.logical_and(np.in1d(current_kernel_version_id, self._nb_identifiers['CurrentKernelVersionId']), only_three_columns),
+        ))
+        for path in np.array(notebook_paths)[should_remove_nb]:
+            print('Removing notebook', path, ' not found in db')
+            # os.unlink(path)
+            rm(path)
 
-            # check if the file have valid name
-            if len(split) == 3:
-                # If the file exists in folder drop it from res
-                if all(np.in1d(split[0], self._nb_identifiers['UserName'].values)) & \
-                        all(np.in1d(split[1], self._nb_identifiers['CurrentUrlSlug'].values)) & \
-                            all(np.in1d(int(split[2]), self._nb_identifiers['CurrentKernelVersionId'].values)):
-                    print('Notebook ', name, ' already downloaded')
-                    self._nb_identifiers = self._nb_identifiers.loc[~(
-                            (self._nb_identifiers['UserName'] == split[0]) &
-                            (self._nb_identifiers['CurrentUrlSlug'] == split[1]))]
-                else:  # remove the notebook
-                    print('Removing notebook', name, ' not found in db')
-                    #path.unlink()
-                    rm(path)
+        # Print number of notebooks should be removed
+        print('Number of notebooks already downloaded: ', len(np.array(notebook_paths)[np.logical_not(should_remove_nb)]))
 
-            else:  # remove the notebook
-                print('Removing notebook', name, ' not valid')
-                #path.unlink()
-                rm(path)
+        # If the file exists in folder drop it from np_identifiers
+        self._nb_identifiers = self._nb_identifiers.loc[~(np.logical_and(
+            np.logical_and(np.in1d(self._nb_identifiers['UserName'], user_names), np.in1d(self._nb_identifiers['CurrentUrlSlug'], current_url_slug)),
+            np.in1d(self._nb_identifiers['CurrentKernelVersionId'], current_kernel_version_id),
+        ))]
 
     def _http_download(self):
         """
