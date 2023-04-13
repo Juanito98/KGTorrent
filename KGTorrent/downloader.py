@@ -98,6 +98,26 @@ class Downloader:
             np.in1d(self._nb_identifiers['CurrentKernelVersionId'], current_kernel_version_id),
         ))]
 
+    def _http_notebook_download(self, url, max_retries=5, retry_delay=10):
+        notebook = None
+        last_error = None
+        for i in range(max_retries):
+            try:
+                notebook = requests.get(url, allow_redirects=True, timeout=5)
+                if notebook.content == "Too many requests":
+                    raise Exception("Too many requests")
+                if notebook.status_code != 200:
+                    raise Exception("Status code not 200")
+            except Exception as e:
+                time.sleep(retry_delay * int(2**i))
+                last_error = e
+                continue
+
+            return notebook
+
+        raise last_error or Exception("Unknown error")
+
+
     def _http_download(self):
         """
         This method implements the HTTP download strategy.
@@ -106,15 +126,13 @@ class Downloader:
         self._n_failed_downloads = 0
 
         for row in tqdm(self._nb_identifiers.itertuples(), total=self._nb_identifiers.shape[0]):
-
             # Generate URL
             url = 'https://www.kaggle.com/kernels/scriptcontent/{}/download'.format(row[3])
 
             # Download notebook content to memory
             # noinspection PyBroadException
             try:
-                notebook = requests.get(url, allow_redirects=True, timeout=5)
-
+                notebook = self._http_notebook_download(url)
             except requests.exceptions.HTTPError:
                 logging.exception(f'HTTPError while requesting the notebook at: "{url}"')
                 self._n_failed_downloads += 1
@@ -129,7 +147,13 @@ class Downloader:
             download_path = os.path.join(self._nb_archive_path, f'{row[1]}_{row[2]}_{row[3]}.ipynb')
             #with open(Path(download_path), 'wb') as notebook_file:
             #    notebook_file.write(notebook.content)
-            write(download_path, notebook.content)
+            try:
+                write(download_path, notebook.content)
+            except Exception:
+                logging.exception(f'An error occurred while uploading the notebook "{download_path}"')
+                self._n_failed_downloads += 1
+                time.sleep(20) # In case server is down wait a little bit
+                continue
 
             self._n_successful_downloads += 1
             logging.info(f'Downloaded {row[1]}/{row[2]} (ID: {row[3]})')
@@ -212,23 +236,23 @@ class Downloader:
 
 if __name__ == '__main__':
 
-    print(f"## Connecting to {config.db_name} db on port {config.db_port} as user {config.db_username}")
+    print(f"## Connecting to {config.db_name} db on port {config.db_port} as user {config.db_username}", flush=True)
     db_engine = DbCommunicationHandler(config.db_username,
                                        config.db_password,
                                        config.db_host,
                                        config.db_port,
                                        config.db_name)
 
-    print("** QUERING KERNELS TO DOWNLOAD **")
+    print("** QUERING KERNELS TO DOWNLOAD **", flush=True)
     kernels_ids = db_engine.get_nb_identifiers(config.nb_conf['languages'])
 
     #downloader = Downloader(kernels_ids.head(), config.nb_archive_path)
     downloader = Downloader(kernels_ids, config.nb_archive_path)
     strategies = 'HTTP', 'API'
 
-    print("*******************************")
-    print("** NOTEBOOK DOWNLOAD STARTED **")
-    print("*******************************")
+    print("*******************************", flush=True)
+    print("** NOTEBOOK DOWNLOAD STARTED **", flush=True)
+    print("*******************************", flush=True)
     print(f'# Selected strategy. {strategies[0]}')
     downloader.download_notebooks(strategy=strategies[0])
     print('## Download finished.')
